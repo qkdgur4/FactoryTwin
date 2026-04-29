@@ -35,6 +35,38 @@ describe('machine simulation', () => {
     expect(next.status).toBe('warning');
   });
 
+  it('only warns when stopped machine temperature remains above threshold', () => {
+    const atThreshold = getNextMachineState(
+      {
+        id: 'id-1',
+        name: 'Press Line Alpha',
+        status: 'stopped',
+        temp: 80,
+        vibration: 1,
+        operatingRate: 0,
+        isWarning: true,
+      },
+      () => 0,
+    );
+    const aboveThreshold = getNextMachineState(
+      {
+        id: 'id-1',
+        name: 'Press Line Alpha',
+        status: 'stopped',
+        temp: 120,
+        vibration: 1,
+        operatingRate: 0,
+        isWarning: true,
+      },
+      () => 0,
+    );
+
+    expect(atThreshold.temp).toBeLessThanOrEqual(80);
+    expect(atThreshold.isWarning).toBe(false);
+    expect(aboveThreshold.temp).toBeGreaterThan(80);
+    expect(aboveThreshold.isWarning).toBe(true);
+  });
+
   it('calms sensor values when a machine is stopped', () => {
     const next = getNextMachineState(
       {
@@ -55,6 +87,23 @@ describe('machine simulation', () => {
     expect(next.status).toBe('stopped');
   });
 
+  it('does not let a stopped machine operating rate fall below zero', () => {
+    const next = getNextMachineState(
+      {
+        id: 'id-3',
+        name: 'Assembly Arm Gamma',
+        status: 'stopped',
+        temp: 40,
+        vibration: 0.3,
+        operatingRate: 3,
+        isWarning: false,
+      },
+      () => 1,
+    );
+
+    expect(next.operatingRate).toBe(0);
+  });
+
   it('keeps history and logs bounded', () => {
     const states = buildInitialMachineStates();
     const history = createInitialHistory(states);
@@ -66,5 +115,21 @@ describe('machine simulation', () => {
     expect(trimHistory(longHistory)).toHaveLength(20);
     expect(trimLogs(logs)).toHaveLength(50);
     expect(trimLogs(logs)[0].message).toBe('message-59');
+  });
+
+  it('keeps newer inserted logs first when timestamps tie', () => {
+    const logs = Array.from({ length: 52 }, (_, index) => ({
+      id: `same-time-${index}`,
+      machineId: 'id-1' as const,
+      level: 'info' as const,
+      message: `message-${index}`,
+      timestamp: 1_700_000_000_000,
+    }));
+
+    const trimmed = trimLogs(logs);
+
+    expect(trimmed).toHaveLength(50);
+    expect(trimmed[0].message).toBe('message-51');
+    expect(trimmed[49].message).toBe('message-2');
   });
 });

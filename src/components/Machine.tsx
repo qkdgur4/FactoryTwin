@@ -1,7 +1,7 @@
 import { Edges, Html } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
 import { useEffect, useState } from 'react';
-import type { MachineState } from '../types/machine';
+import type { MachineState, MachineStatus } from '../types/machine';
 
 interface MachineProps {
   machine: MachineState;
@@ -9,13 +9,13 @@ interface MachineProps {
   onSelect: () => void;
 }
 
-const statusText = {
-  running: '가동중',
+const statusText: Record<MachineStatus, string> = {
+  running: '가동 중',
   stopped: '정지',
-  warning: 'Warning',
+  warning: '경고',
 };
 
-const statusClassName = {
+const statusClassName: Record<MachineStatus, string> = {
   running: 'border-emerald-400/40 bg-emerald-400/15 text-emerald-100',
   stopped: 'border-slate-400/40 bg-slate-500/25 text-slate-100',
   warning: 'border-red-400/60 bg-red-500/25 text-red-100',

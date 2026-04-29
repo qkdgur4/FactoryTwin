@@ -19,7 +19,7 @@ import {
   YAxis,
 } from 'recharts';
 import { useMachineData } from '../context/useMachineData';
-import type { MachineId, MachineState } from '../types/machine';
+import type { MachineId, MachineState, MachineStatus } from '../types/machine';
 import { MACHINE_IDS, WARNING_TEMP } from '../utils/machineSimulation';
 
 interface DashboardProps {
@@ -27,13 +27,13 @@ interface DashboardProps {
   onSelectMachine: (machineId: MachineId) => void;
 }
 
-const statusText = {
-  running: '가동중',
+const statusText: Record<MachineStatus, string> = {
+  running: '가동 중',
   stopped: '정지',
   warning: '경고',
 };
 
-const statusClassName = {
+const statusClassName: Record<MachineStatus, string> = {
   running: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
   stopped: 'border-slate-400/30 bg-slate-500/15 text-slate-200',
   warning: 'border-red-400/40 bg-red-500/15 text-red-200',
@@ -67,7 +67,7 @@ function Metric({
     <div className="min-w-0 rounded border border-slate-700/80 bg-slate-950/45 px-3 py-2">
       <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
         {icon}
-        <span>{label}</span>
+        <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 truncate text-sm font-semibold text-slate-100">{value}</div>
     </div>
@@ -110,17 +110,17 @@ function MachineCard({
       <div className="mt-3 grid grid-cols-3 gap-2">
         <Metric
           icon={<Thermometer className="h-3.5 w-3.5" />}
-          label="Temp"
+          label="온도"
           value={`${machine.temp.toFixed(1)}C`}
         />
         <Metric
           icon={<Waves className="h-3.5 w-3.5" />}
-          label="Vib"
+          label="진동"
           value={`${machine.vibration.toFixed(1)}mm/s`}
         />
         <Metric
           icon={<Gauge className="h-3.5 w-3.5" />}
-          label="Rate"
+          label="가동률"
           value={`${machine.operatingRate.toFixed(0)}%`}
         />
       </div>
@@ -132,16 +132,18 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
   const { history, logs, machines, toggleMachine, warningMachines } = useMachineData();
 
   return (
-    <aside className="flex min-h-0 flex-col border-l border-slate-800/90 bg-slate-950/80 lg:h-full">
+    <aside className="flex min-h-0 flex-col border-t border-slate-800/90 bg-slate-950/80 lg:h-full lg:border-l lg:border-t-0">
       <div className="border-b border-slate-800/90 px-4 py-4">
         <div className="flex items-center justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
               Live Telemetry
             </p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-50">설비 관제</h2>
+            <h2 className="mt-1 truncate text-xl font-semibold text-slate-50">
+              설비 관제
+            </h2>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded border border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-cyan-400/30 bg-cyan-400/10 text-cyan-200">
             <RadioTower className="h-5 w-5" />
           </div>
         </div>
@@ -150,11 +152,11 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
         <section className="rounded border border-slate-800 bg-slate-900/45 p-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <AlertTriangle className="h-4 w-4 text-red-300" />
-              임계치 알림
+            <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-100">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-red-300" />
+              <span className="truncate">임계치 알림</span>
             </div>
-            <span className="text-xs text-slate-400">{WARNING_TEMP}C 기준</span>
+            <span className="shrink-0 text-xs text-slate-400">{WARNING_TEMP}C 기준</span>
           </div>
           <div className="mt-3">
             {warningMachines.length > 0 ? (
@@ -162,12 +164,12 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
                 {warningMachines.map((machineId) => (
                   <button
                     key={machineId}
-                    className="flex w-full items-center justify-between rounded border border-red-400/35 bg-red-500/12 px-3 py-2 text-left text-sm text-red-100"
+                    className="flex w-full items-center justify-between gap-3 rounded border border-red-400/35 bg-red-500/12 px-3 py-2 text-left text-sm text-red-100"
                     type="button"
                     onClick={() => onSelectMachine(machineId)}
                   >
-                    <span className="truncate">{machines[machineId].name}</span>
-                    <span className="font-semibold">
+                    <span className="min-w-0 truncate">{machines[machineId].name}</span>
+                    <span className="shrink-0 font-semibold">
                       {machines[machineId].temp.toFixed(1)}C
                     </span>
                   </button>
@@ -175,7 +177,7 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
               </div>
             ) : (
               <p className="rounded border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-100">
-                모든 설비가 정상 범위에서 동작 중입니다.
+                모든 설비가 정상 범위에서 작동 중입니다.
               </p>
             )}
           </div>
@@ -194,11 +196,11 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
 
         <section className="rounded border border-slate-800 bg-slate-900/45 p-3">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <Activity className="h-4 w-4 text-cyan-300" />
-              최근 20초 온도
+            <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-100">
+              <Activity className="h-4 w-4 shrink-0 text-cyan-300" />
+              <span className="truncate">최근 20초 온도</span>
             </div>
-            <span className="text-xs text-slate-400">1s refresh</span>
+            <span className="shrink-0 text-xs text-slate-400">1s refresh</span>
           </div>
           <div className="mt-3 h-56">
             <ResponsiveContainer height="100%" width="100%">
@@ -244,11 +246,11 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
 
         <section className="rounded border border-slate-800 bg-slate-900/45 p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
-              <Cpu className="h-4 w-4 text-cyan-300" />
-              실시간 로그 캐스터
+            <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-100">
+              <Cpu className="h-4 w-4 shrink-0 text-cyan-300" />
+              <span className="truncate">실시간 로그 캐스터</span>
             </div>
-            <span className="text-xs text-slate-400">latest 50</span>
+            <span className="shrink-0 text-xs text-slate-400">latest 50</span>
           </div>
           <div className="max-h-64 space-y-2 overflow-hidden">
             {logs.map((log) => (
@@ -263,7 +265,7 @@ export function Dashboard({ selectedMachineId, onSelectMachine }: DashboardProps
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="truncate font-medium">{log.message}</span>
+                  <span className="min-w-0 truncate font-medium">{log.message}</span>
                   <span className="shrink-0 text-slate-500">
                     {formatClock(log.timestamp)}
                   </span>

@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { FactoryScene } from './components/FactoryScene';
 import { MachineModal } from './components/MachineModal';
-import {
-  MachineDataProvider,
-} from './context/MachineDataContext';
+import { MachineDataProvider } from './context/MachineDataContext';
 import { useMachineData } from './context/useMachineData';
 import type { MachineId } from './types/machine';
 

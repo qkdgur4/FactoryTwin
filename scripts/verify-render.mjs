@@ -38,9 +38,10 @@ for (const viewport of viewports) {
         canvasFound: false,
         canvasHeight: 0,
         canvasWidth: 0,
+        hasDashboardText: false,
+        hasMachineLabels: false,
         nonZeroPixels: 0,
         uniqueColorBuckets: 0,
-        hasDashboardText: text.includes('FactoryTwin') && text.includes('설비 관제'),
       };
     }
 
@@ -77,9 +78,15 @@ for (const viewport of viewports) {
       canvasFound: true,
       canvasHeight: Math.round(rect.height),
       canvasWidth: Math.round(rect.width),
+      hasDashboardText:
+        text.includes('FactoryTwin') &&
+        text.includes('설비 관제') &&
+        text.includes('최근 20초 온도') &&
+        text.includes('실시간 로그 캐스터'),
+      hasMachineLabels:
+        text.includes('id-1') && text.includes('id-2') && text.includes('id-3'),
       nonZeroPixels,
       uniqueColorBuckets: colorBuckets.size,
-      hasDashboardText: text.includes('FactoryTwin') && text.includes('설비 관제'),
     };
   });
 
@@ -90,7 +97,7 @@ for (const viewport of viewports) {
   });
 
   if (viewport.name === 'desktop') {
-    await page.getByText('id-2 · 가동중').click();
+    await page.getByText('id-2 · 가동 중').click();
     await page.waitForSelector('text=Machine Detail', { timeout: 5_000 });
 
     const modalText = await page.locator('[role="dialog"]').innerText();
@@ -133,6 +140,10 @@ for (const result of results) {
 
   if (!result.hasDashboardText) {
     throw new Error(`${result.viewport}: dashboard text was not detected`);
+  }
+
+  if (!result.hasMachineLabels) {
+    throw new Error(`${result.viewport}: machine labels were not detected`);
   }
 }
 

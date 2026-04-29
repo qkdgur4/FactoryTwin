@@ -1,11 +1,17 @@
 import { Power, X } from 'lucide-react';
-import type { MachineState } from '../types/machine';
+import type { MachineState, MachineStatus } from '../types/machine';
 
 interface MachineModalProps {
   machine: MachineState | null;
   onClose: () => void;
   onToggle: () => void;
 }
+
+const statusText: Record<MachineStatus, string> = {
+  running: '가동 중',
+  stopped: '정지',
+  warning: '경고',
+};
 
 export function MachineModal({ machine, onClose, onToggle }: MachineModalProps) {
   if (!machine) {
@@ -21,6 +27,7 @@ export function MachineModal({ machine, onClose, onToggle }: MachineModalProps) 
       onClick={onClose}
     >
       <section
+        aria-labelledby="machine-detail-title"
         aria-modal="true"
         className="w-full max-w-md rounded border border-cyan-400/25 bg-slate-950 text-slate-100 shadow-[0_0_40px_rgba(34,211,238,0.16)]"
         role="dialog"
@@ -31,8 +38,13 @@ export function MachineModal({ machine, onClose, onToggle }: MachineModalProps) 
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
               Machine Detail
             </p>
-            <h2 className="mt-2 truncate text-xl font-semibold">{machine.name}</h2>
-            <p className="mt-1 text-sm text-slate-400">{machine.role}</p>
+            <h2
+              className="mt-2 truncate text-xl font-semibold"
+              id="machine-detail-title"
+            >
+              {machine.name}
+            </h2>
+            <p className="mt-1 truncate text-sm text-slate-400">{machine.role}</p>
           </div>
           <button
             aria-label="닫기"
@@ -45,35 +57,33 @@ export function MachineModal({ machine, onClose, onToggle }: MachineModalProps) 
         </div>
 
         <div className="grid grid-cols-2 gap-3 p-5">
-          <div className="rounded border border-slate-800 bg-slate-900/60 p-3">
+          <div className="min-w-0 rounded border border-slate-800 bg-slate-900/60 p-3">
             <p className="text-xs text-slate-400">Machine ID</p>
-            <p className="mt-1 font-semibold">{machine.id}</p>
+            <p className="mt-1 truncate font-semibold">{machine.id}</p>
           </div>
-          <div className="rounded border border-slate-800 bg-slate-900/60 p-3">
+          <div className="min-w-0 rounded border border-slate-800 bg-slate-900/60 p-3">
             <p className="text-xs text-slate-400">Status</p>
-            <p className="mt-1 font-semibold">
-              {machine.status === 'warning'
-                ? 'Warning'
-                : machine.status === 'running'
-                  ? '가동중'
-                  : '정지'}
+            <p className="mt-1 truncate font-semibold">{statusText[machine.status]}</p>
+          </div>
+          <div className="min-w-0 rounded border border-slate-800 bg-slate-900/60 p-3">
+            <p className="text-xs text-slate-400">Temperature</p>
+            <p className="mt-1 truncate font-semibold">{machine.temp.toFixed(1)}C</p>
+          </div>
+          <div className="min-w-0 rounded border border-slate-800 bg-slate-900/60 p-3">
+            <p className="text-xs text-slate-400">Vibration</p>
+            <p className="mt-1 truncate font-semibold">
+              {machine.vibration.toFixed(1)}mm/s
             </p>
           </div>
-          <div className="rounded border border-slate-800 bg-slate-900/60 p-3">
-            <p className="text-xs text-slate-400">Temperature</p>
-            <p className="mt-1 font-semibold">{machine.temp.toFixed(1)}C</p>
-          </div>
-          <div className="rounded border border-slate-800 bg-slate-900/60 p-3">
-            <p className="text-xs text-slate-400">Vibration</p>
-            <p className="mt-1 font-semibold">{machine.vibration.toFixed(1)}mm/s</p>
-          </div>
-          <div className="rounded border border-slate-800 bg-slate-900/60 p-3">
+          <div className="min-w-0 rounded border border-slate-800 bg-slate-900/60 p-3">
             <p className="text-xs text-slate-400">Operating Rate</p>
-            <p className="mt-1 font-semibold">{machine.operatingRate.toFixed(0)}%</p>
+            <p className="mt-1 truncate font-semibold">
+              {machine.operatingRate.toFixed(0)}%
+            </p>
           </div>
-          <div className="rounded border border-slate-800 bg-slate-900/60 p-3">
+          <div className="min-w-0 rounded border border-slate-800 bg-slate-900/60 p-3">
             <p className="text-xs text-slate-400">Spec</p>
-            <p className="mt-1 font-semibold">Simulated v1</p>
+            <p className="mt-1 truncate font-semibold">Simulated v1</p>
           </div>
         </div>
 
@@ -88,7 +98,7 @@ export function MachineModal({ machine, onClose, onToggle }: MachineModalProps) 
             onClick={onToggle}
           >
             <Power className="h-4 w-4" />
-            {isStopped ? '가동 시작' : '가동 중지'}
+            {isStopped ? '가동 재시작' : '가동 중지'}
           </button>
         </div>
       </section>
